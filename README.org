@@ -1,0 +1,5 @@
+
+* Deploy Core
+  
+  This is a version of tiny core Linux, with modified boot scripts to
+  work with the deploy app server
