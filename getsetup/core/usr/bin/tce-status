@@ -1,0 +1,28 @@
+#!/bin/sh
+TCEDIR="/etc/sysconfig/tcedir"
+TCEINSTALLED="/usr/local/tce.installed"
+TCELIST="/tmp/tcelist"
+# Display installed (-i) or uninstalled (-u)
+
+[ -n "$1" ] || echo "Usage tce-status -i | -u"
+
+installed() {
+	for E in `ls "$TCEINSTALLED" 2>/dev/null`; do
+		echo "$E"
+	done
+}
+
+uninstalled() {
+	for E in `ls "$TCEDIR"/optional/*.tcz 2>/dev/null`; do
+		E="${E##*/}"
+		[ -e "$TCEINSTALLED"/"${E%.tcz}" ] || echo "$E"
+	done
+}
+
+while getopts iu OPTION
+do
+	case ${OPTION} in
+		i) installed ;;
+		u) uninstalled ;;
+	esac
+done
