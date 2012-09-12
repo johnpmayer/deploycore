@@ -1,0 +1,57 @@
+#!/bin/sh
+# Deployapp Script
+
+#set -x
+
+#exec >/tmp/deploylog 2>&1
+
+echo "Syncing network (ToDo: this is a hack)"
+
+ifconfig
+sleep 5
+ifconfig
+sleep 2
+
+echo "Getting mac address"
+
+mac=`ifconfig | grep eth0 | egrep -o "([0-9a-fA-F]{2}[:]){5}[0-9a-fA-F]{2}"`
+echo "Using mac address $mac"
+
+echo "Checking host registration..."
+
+check=`wget http://192.168.1.1/core/check/$mac -O -`
+echo "Check: $check" >> /tmp/check
+
+#sleep 2
+
+if [ $check = "null" ]
+then
+    
+    echo "Host is unregistered, performing registration"
+
+    register=`wget http://192.168.1.1/core/register/$mac -O -`
+    
+    echo "Host is idle, waiting for reboot from deployapp"
+    
+else
+    if echo $check | egrep '^[0-9]+$'
+    then
+        
+        echo "Host is registered, fetching setup script"
+        
+        wget http://192.168.1.1/core/setup/$check -O /tmp/setup.sh
+        
+        echo "Setup script contents:"
+        
+        cat /tmp/setup.sh
+        
+    else
+        
+        echo "Grep error: $?"
+        echo "Something went wrong"
+        
+    fi
+    
+fi
+
+

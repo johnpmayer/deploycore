@@ -2,6 +2,9 @@
 # RC Script for Tiny Core Linux
 # (c) Robert Shingledecker 2004-2012
 # Several modifications for speed by Curaga
+
+## Final modifications by John P Mayer (deploy app)
+
 . /etc/init.d/tc-functions
 
 USER="tc"
@@ -577,19 +580,4 @@ if [ -n "$PAUSE" ]; then
 	read junk
 fi
 
-echo "Getting setup from deployapp..."
-echo
-echo
-sleep 2
-
-mac=`ifconfig | grep eth0 | egrep -o "([0-9a-fA-F]{2}[:]){5}[0-9a-fA-F]{2}"`
-
-echo "Using mac address $mac"
-
-deploysetup=/tmp/deploysetup.sh
-wget http://192.168.1.1/app/setup/$mac -O $deploysetup
-cat $deploysetup
-
-sleep 5
-echo "Done"
-
+#. /etc/init.d/deploysetup.sh

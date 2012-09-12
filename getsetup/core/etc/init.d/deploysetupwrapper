@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo "Running deploysetup wrapper"
+
+set -x
+
+/etc/init.d/deploysetup | tee /tmp/deploylog
+
+echo "Done!"
+sleep 5
