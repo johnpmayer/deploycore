@@ -1,0 +1,83 @@
+#!/bin/sh
+# Deployapp Script
+
+
+set -x
+set -u
+
+exec 2>&1
+
+config=$1
+
+echo "In fdisk"
+
+# counter for the number of primary or extended partitions encountered
+n=0
+
+script=/tmp/fdisk_script
+
+>$script
+
+# Assumes that the configuration file is ordered by partition number
+cat $config | while read LINE
+do
+    
+    echo "Line: $LINE"
+    
+    # Format <pnumber>:<ptype>:<psize>
+    pnumber=`echo $LINE | awk -F ':' '{print $1}'`
+    ptype=`echo $LINE | awk -F ':' '{print $2}'`
+    psize=`echo $LINE | awk -F ':' '{print $3}'`
+    
+    if [ $ptype -eq 0 ]
+    then
+        
+        echo "Extended Partition"
+        
+        n=`expr $n + 1`
+        
+        echo "n"          >> $script # New Partition
+        echo "e"          >> $script # Extended Partition
+        echo "$pnumber"   >> $script # Partition Number
+        echo ""           >> $script # Accept default start cylinder"
+        echo "+${psize}M" >> $script # Set size = $psize megabytes
+                
+    elif [ $ptype -le 4 ]
+    then
+        
+        echo "Primary Partiition"
+        
+        n=`expr $n + 1`
+        
+        echo "n"          >> $script # New Partition
+        echo "p"          >> $script # Primary Partition
+        echo "$pnumber"   >> $script # Partition Number
+        echo ""           >> $script # Accept default start cylinder
+        echo "+${psize}M" >> $script # Set size = $psize megabytes
+        
+    elif [ $ptype -ge 5 ]
+    then
+        
+        echo "Logical Partition"
+        
+        echo "n"          >> $script # New Partition
+        
+        if [ $n -lt 4 ]
+        then # this is skipped if all 1-4 have been specified
+            echo "l"      >> $script # Logical Partition
+        fi
+        
+        echo ""           >> $script # Accept default start cylinder
+        echo "+${psize}M" >> $script # Set size = $psize megabytes
+        
+    fi
+        
+    echo "number $pnumber type $ptype size $psize"
+    
+done
+
+echo "w" >> $script # write partition table
+
+cat $script | fdisk /dev/sda
+
+echo "finished partitioning process"

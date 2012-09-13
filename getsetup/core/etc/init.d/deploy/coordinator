@@ -1,15 +1,16 @@
 #!/bin/sh
 # Deployapp Script
 
-#set -x
+set -x
+set -u
 
-#exec >/tmp/deploylog 2>&1
+exec 2>&1
 
 echo "Syncing network (ToDo: this is a hack)"
 
-ifconfig
+ifconfig >/dev/null 2>&1
 sleep 5
-ifconfig
+ifconfig >/dev/null 2>&1
 sleep 2
 
 echo "Getting mac address"
@@ -19,12 +20,10 @@ echo "Using mac address $mac"
 
 echo "Checking host registration..."
 
-check=`wget http://192.168.1.1/core/check/$mac -O -`
-echo "Check: $check" >> /tmp/check
+id=`wget http://192.168.1.1/core/check/$mac -O -`
+echo "Check registration: $id" >> /tmp/check
 
-#sleep 2
-
-if [ $check = "null" ]
+if [ $id = "null" ]
 then
     
     echo "Host is unregistered, performing registration"
@@ -32,18 +31,20 @@ then
     register=`wget http://192.168.1.1/core/register/$mac -O -`
     
     echo "Host is idle, waiting for reboot from deployapp"
-    
+
 else
-    if echo $check | egrep '^[0-9]+$'
+    if echo $id | egrep '^[0-9]+$'
     then
         
-        echo "Host is registered, fetching setup script"
+        etc="/tmp/deployetc"
+        mkdir -p $etc
         
-        wget http://192.168.1.1/core/setup/$check -O /tmp/setup.sh
+        echo "Host is registered, fetching setup configuration files"
         
-        echo "Setup script contents:"
+        wget http://192.168.1.1/core/fdisk/$id -O - >$etc/fdisk
+        cat $etc/fdisk
         
-        cat /tmp/setup.sh
+        $deploybin/fdisk $etc/fdisk
         
     else
         

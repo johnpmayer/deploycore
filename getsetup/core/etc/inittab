@@ -4,6 +4,7 @@
 ::sysinit:/etc/init.d/rcS
 
 :123:wait:/etc/init.d/deploysetupwrapper
+#:123:wait:/etc/init.d/ssh_load_start
 
 # /sbin/getty respawn shell invocations for selected ttys.
 tty1::respawn:/sbin/getty -nl /sbin/autologin 38400 tty1

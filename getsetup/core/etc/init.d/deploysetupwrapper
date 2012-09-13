@@ -4,7 +4,16 @@ echo "Running deploysetup wrapper"
 
 set -x
 
-/etc/init.d/deploysetup | tee /tmp/deploylog
+export deploybin=/etc/init.d/deploy
+
+$deploybin/coordinator | tee /tmp/deploylog
+
+echo "Running ssh_load_start"
+
+/etc/init.d/ssh_load_start | tee /tmp/sshlog
 
 echo "Done!"
-sleep 5
+sleep 2
+
+
+

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -x
+
+echo "Loading ssh"
+
+sudo -u tc /usr/bin/tce-load -i /ssh/openssh
+
+echo "Done"
+
+echo "Starting daemon"
+
+/usr/local/sbin/sshd -e -f /ssh/sshd_config
+
+echo "Done"
+
+
