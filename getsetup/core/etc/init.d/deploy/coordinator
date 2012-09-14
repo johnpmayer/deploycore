@@ -16,7 +16,9 @@ sleep 2
 echo "Getting mac address"
 
 mac=`ifconfig | grep eth0 | egrep -o "([0-9a-fA-F]{2}[:]){5}[0-9a-fA-F]{2}"`
-echo "Using mac address $mac"
+report_ip=`ifconfig | grep -A 1 eth0 | egrep -o "inet addr:(\S+)" | awk -F ':' '{print $2}' | awk -F '.' '{print $4}`
+
+echo "Using mac address $mac, reporting ip $report_ip"
 
 echo "Checking host registration..."
 
@@ -27,11 +29,13 @@ if [ $id = "null" ]
 then
     
     echo "Host is unregistered, performing registration"
-
+    
     register=`wget http://192.168.1.1/core/register/$mac -O -`
+    id=`wget http://192.168.1.1/core/check/$mac -O -`
+    wget http://192.168.1.1/core/report/$id/$report_ip -O -
     
     echo "Host is idle, waiting for reboot from deployapp"
-
+    
 else
     if echo $id | egrep '^[0-9]+$'
     then
@@ -40,6 +44,10 @@ else
         mkdir -p $etc
         
         echo "Host is registered, fetching setup configuration files"
+        
+	wget http://192.168.1.1/core/report/$id/$report_ip -O -
+        
+        echo "ToDo: pause and wait to see if we should actually do any installation"
         
         wget http://192.168.1.1/core/fdisk/$id -O - >$etc/fdisk
         cat $etc/fdisk
