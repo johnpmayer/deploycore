@@ -14,7 +14,23 @@ echo "In fdisk"
 # counter for the number of primary or extended partitions encountered
 n=0
 
-script=/tmp/fdisk_script
+delete=$etc/fdisk_delete
+script=$etc/fdisk_script
+
+cat >$delete <<EOF
+d
+1
+d
+2
+d
+3
+d
+4
+w
+
+EOF
+
+cat $delete | fdisk /dev/sda
 
 >$script
 
