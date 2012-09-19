@@ -47,12 +47,19 @@ else
         
 	wget http://192.168.1.1/core/report/$id/$report_ip -O -
         
+        # todo todo todo
         echo "ToDo: pause and wait to see if we should actually do any installation"
         
+        
+        # Create partitions with fdisk
         wget http://192.168.1.1/core/fdisk/$id -O - >$etc/fdisk
         cat $etc/fdisk
-        
         $deploybin/fdisk $etc/fdisk
+        
+        # Format all partitions to ext2 and mount them under /host
+        wget http://192.168.1.1/core/fstab/$id -O - >$etc/mount
+        cat $etc/mount
+        $deploybin/mount $etc/mount
         
     else
         
