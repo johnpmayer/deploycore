@@ -83,20 +83,35 @@ else
         # Install grub2
         /usr/local/sbin/grub-install --no-floppy --root-directory=$mountroot /dev/sda
         
+        rootpart=`awk -F ':' '$4 ~ /^\/$/ {print $1}' $fstabcfg`
+        bootpart=`awk -F ':' '$5 ~ /1/ {print $1}' $fstabcfg`
+        bootmount=`awk -F ':' '$5 ~ /1/ {print $4}' $fstabcfg`
+        
+        pre=""
+        if [ $bootmount = '/' ]
+        then
+            pre="/boot"
+        fi
+        
+        echo "Grub params: $rootpart $bootpart $bootmount $pre"
+        
         # and write the new grub config file
-        cat >$mountroot/boot/grub/grub.cfg <<EOF
+        grubcfg=$mountroot/boot/grub/grub.cfg
+        >$grubcfg
+        cat >>$grubcfg <<EOF
 # Begin /boot/grub/grub.cfg
 set default=0
 set timeout=1
-
 insmod ext2
-set root=(hd0,1)
-
-menuentry "Deployapp Fedora 17 minimal" {
-linux /vmlinuz-3.5.3-1.fc17.x86_64 ro root=/dev/sda2
-initrd /initramfs-3.5.301.fc17.x86_64.img
-}
 EOF
+        echo >>$grubcfg "set root=(hd0,${bootpart})"
+        echo >>$grubcfg "menuentry \"Deployapp Fedora 17 minimal\" {"
+        echo >>$grubcfg "linux ${pre}/vmlinuz-3.5.3-1.fc17.x86_64 ro root=/dev/sda${rootpart}"
+        echo >>$grubcfg "initrd ${pre}/initramfs-3.5.301.fc17.x86_64.img"
+        echo >>$grubcfg "}"
+        
+        # Copy the locale to prevent a missing file bug heh
+        #cp $mountroot/usr/share/locale/en@quot/LC_MESSAGES/grub.mo $mountroot/boot/grub/locale/en.mo
         
         # and create the convenience link in /etc
         ln -sf $mountroot/boot/grub/grub.cfg $mountroot/etc/grub.cfg
