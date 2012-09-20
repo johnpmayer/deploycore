@@ -6,7 +6,8 @@ set -x
 
 echo "Loading grub"
 
-sudo -u tc /usr/bin/tce-load -i /extensions/grub-0.97-splash
+sudo -u tc /usr/bin/tce-load -i /extensions/xz
+sudo -u tc /usr/bin/tce-load -i /extensions/grub2
 
 echo "Running deploy scripts"
 

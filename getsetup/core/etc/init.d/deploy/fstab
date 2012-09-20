@@ -1,0 +1,54 @@
+#!/bin/sh
+# Deployapp Script
+
+set -x
+set -u
+
+exec 2>&1
+
+config=$1
+
+# mountroot=/host/ exported in coordinator
+
+fstab=${mountroot}/etc/fstab
+>$fstab
+
+echo "In fstab"
+
+# Assumes that the configuration file is ordered by partition number
+cat $config | while read LINE
+do
+    
+    echo "Line: $LINE"
+    
+    # Format <pnumber>:<ptype>:<psize>
+    pnumber=`echo $LINE | awk -F ':' '{print $1}'`
+    ptype=`echo $LINE | awk -F ':' '{print $2}'`
+    psize=`echo $LINE | awk -F ':' '{print $3}'`
+    pmount=`echo $LINE | awk -F ':' '{print $4}'`
+    
+    if [ $ptype -eq 0 ]
+    then
+        echo "Won't write entry for extended partition"
+        continue
+    fi
+    
+    device=/dev/sda${pnumber}
+    mountpoint=${pmount}
+    fstype=ext2
+    options=defaults
+    dump=1
+    
+    if [ $mountpoint = "/" ] 
+    then
+        fsckorder=1
+    else
+        fsckorder=2
+    fi
+    
+    echo >>$fstab -e "${device}\t${mountpoint}\t${fstype}\t${options}\t${dump}\t${fsckorder}"
+    
+    
+done
+
+echo "finished writing fstab"
