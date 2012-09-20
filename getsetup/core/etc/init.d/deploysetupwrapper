@@ -4,6 +4,12 @@ echo "Running deploysetup wrapper"
 
 set -x
 
+echo "Loading grub"
+
+sudo -u tc /usr/bin/tce-load -i /extensions/grub-0.97-splash
+
+echo "Running deploy scripts"
+
 export deploybin=/etc/init.d/deploy
 
 $deploybin/coordinator | tee /tmp/deploylog

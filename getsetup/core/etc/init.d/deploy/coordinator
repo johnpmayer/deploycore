@@ -22,7 +22,7 @@ echo "Using mac address $mac, reporting ip $report_ip"
 
 echo "Checking host registration..."
 
-id=`wget http://192.168.1.1/core/check/$mac -O -`
+id=`wget http://router/core/check/$mac -O -`
 echo "Check registration: $id" >> /tmp/check
 
 if [ $id = "null" ]
@@ -30,9 +30,9 @@ then
     
     echo "Host is unregistered, performing registration"
     
-    register=`wget http://192.168.1.1/core/register/$mac -O -`
-    id=`wget http://192.168.1.1/core/check/$mac -O -`
-    wget http://192.168.1.1/core/report/$id/$report_ip -O -
+    register=`wget http://router/core/register/$mac -O -`
+    id=`wget http://router/core/check/$mac -O -`
+    wget http://router/core/report/$id/$report_ip -O -
     
     echo "Host is idle, waiting for reboot from deployapp"
     
@@ -45,21 +45,45 @@ else
         
         echo "Host is registered, fetching setup configuration files"
         
-	wget http://192.168.1.1/core/report/$id/$report_ip -O -
+	wget http://router/core/report/$id/$report_ip -O -
         
         # todo todo todo
         echo "ToDo: pause and wait to see if we should actually do any installation"
         
         
         # Create partitions with fdisk
-        wget http://192.168.1.1/core/fdisk/$id -O - >$etc/fdisk
+        wget http://router/core/fdisk/$id -O - >$etc/fdisk
         cat $etc/fdisk
         $deploybin/fdisk $etc/fdisk
         
+        export mountroot="/host/"
+        
         # Format all partitions to ext2 and mount them under /host
-        wget http://192.168.1.1/core/fstab/$id -O - >$etc/mount
+        wget http://router/core/fstab/$id -O - >$etc/mount
         cat $etc/mount
         $deploybin/mount $etc/mount
+        
+        # Get the archive url
+        archive_url=`wget http://router/core/archive/$id -O -`
+        echo "Archive URL: $archive_url"
+
+        # Download and unpack the filesystem
+        (cd $mountroot; 
+            wget http://router/images/$archive_url -O - |
+            zcat | cpio -i -H newc -d
+        )
+        
+        # Run the grub installer
+        sudo grub-install --root-directory=$mountroot /dev/sda
+        
+        cat >$mountroot/boot/grub.conf <<EOF
+default 0
+timeout 5
+title DeployApp Installed OS
+root (hd0,0)
+kernel /boot/vmlinuz-3.5.3-1.fc17.x86_64 ro root=/dev/sda2
+initrd /boot/initramfs-3.5.3-1.fc17.x86_64.img
+EOF
         
     else
         
