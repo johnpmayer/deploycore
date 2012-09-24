@@ -106,8 +106,8 @@ insmod ext2
 EOF
         echo >>$grubcfg "set root=(hd0,${bootpart})"
         echo >>$grubcfg "menuentry \"Deployapp Fedora 17 minimal\" {"
-        echo >>$grubcfg "linux ${pre}/vmlinuz-3.5.3-1.fc17.x86_64 ro root=/dev/sda${rootpart}"
-        echo >>$grubcfg "initrd ${pre}/initramfs-3.5.301.fc17.x86_64.img"
+        echo >>$grubcfg "linux ${pre}/vmlinuz-3.3.4-5.fc17.x86_64 ro root=/dev/sda${rootpart}"
+        echo >>$grubcfg "initrd ${pre}/initramfs-3.3.4-5.fc17.x86_64.img"
         echo >>$grubcfg "}"
         
         # Copy the locale to prevent a missing file bug heh
