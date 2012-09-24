@@ -1,0 +1,4 @@
+[assessment.fedora-17-x86_64]
+Name=Assessment $releasever $basearch local area network repository
+baseurl=http://router/repo
+enabled=1

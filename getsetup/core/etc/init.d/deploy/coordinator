@@ -116,6 +116,9 @@ EOF
         # and create the convenience link in /etc
         ln -sf $mountroot/boot/grub/grub.cfg $mountroot/etc/grub.cfg
 
+        # Copy the repository file
+        cp $deploybin/assessment.fedora-17-x86_64.repo $mountroot/etc/yum.repos.d/
+        
     else
         
         echo "Grep error: $?"
