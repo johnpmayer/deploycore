@@ -105,7 +105,7 @@ set timeout=1
 insmod ext2
 EOF
         echo >>$grubcfg "set root=(hd0,${bootpart})"
-        echo >>$grubcfg "menuentry \"Deployapp Fedora 17 minimal\" {"
+        echo >>$grubcfg "menuentry \"Deployapp Linux\" {"
         echo >>$grubcfg "linux ${pre}/vmlinuz-3.3.4-5.fc17.x86_64 ro root=/dev/sda${rootpart}"
         echo >>$grubcfg "initrd ${pre}/initramfs-3.3.4-5.fc17.x86_64.img"
         echo >>$grubcfg "}"
@@ -118,6 +118,23 @@ EOF
 
         # Copy the repository file
         cp $deploybin/assessment.fedora-17-x86_64.repo $mountroot/etc/yum.repos.d/
+        
+        # Create the repo installer script
+        deploypackagescript=$mountroot/etc/init.d/deploypackages
+        >deploypackagesscript
+        echo '#!/bin/sh' >> $deploypackagescript
+        echo 'mac=`ifconfig | grep ether | egrep -o "(..:..:..:..:..:..)"`' >> $deploypackagescript
+        echo 'MAC=`echo $mac | tr "[a-z]" "[A-Z]"`' >> $deploypackagescript
+        echo 'host=`curl http://router/core/check/$MAC`' >> $deploypackagescript
+        echo 'curl http://router/core/packages/$host | while read pkg' >> $deploypackagescript
+        echo 'do' >> $deploypackagescript
+        echo 'echo "Get $pkg" | tee -a /tmp/deploypackagelog' >> $deploypackagescript
+        echo 'yum install -y --nogpgcheck $pkg 2>&1 | tee -a /tmp/deploypackagelog' >> $deploypackagescript
+        echo 'done' >> $deploypackagescript
+        chmod +x $deploypackagescript
+        
+        # Add to run level 3 startup directory
+        (cd $mountroot/etc/rc3.d/; ln -s ../init.d/deploypackages S11deploypackages)
         
     else
         
