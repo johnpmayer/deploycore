@@ -49,8 +49,14 @@ else
         
         # todo todo todo
         echo "ToDo: pause and wait to see if we should actually do any installation"
+        deploy_stage=`wget http://router/core/isstaged/$id -O -`
         
-        
+        if [ $deploy_stage -ne 1 ]
+        then
+            echo "Host is not staged for install, setup exiting"
+            exit
+        fi
+                
         # Create partitions with fdisk
         wget http://router/core/fdisk/$id -O - >$etc/fdisk
         cat $etc/fdisk
@@ -135,6 +141,15 @@ EOF
         
         # Add to run level 3 startup directory
         (cd $mountroot/etc/rc3.d/; ln -s ../init.d/deploypackages S11deploypackages)
+        
+        # Machine is hot!
+        new_stage=`wget http://router/core/finished/$id -O -`
+        
+        if [ new_stage -eq 1 ]
+        then
+            echo "would reboot here"
+            sudo reboot
+        fi
         
     else
         
