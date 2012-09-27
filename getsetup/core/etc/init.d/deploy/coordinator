@@ -145,7 +145,7 @@ EOF
         # Machine is hot!
         new_stage=`wget http://router/core/finished/$id -O -`
         
-        if [ new_stage -eq 1 ]
+        if [ $new_stage -eq 1 ]
         then
             echo "would reboot here"
             sudo reboot
